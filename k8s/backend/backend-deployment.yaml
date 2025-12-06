@@ -1,28 +1,60 @@
+# Backend Blue
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: backend-blue
   labels:
     app: backend
+    version: blue
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: backend
+      version: blue
   template:
     metadata:
       labels:
         app: backend
+        version: blue
     spec:
       containers:
       - name: backend
         image: studentappacr.azurecr.io/backend:latest
         ports:
-        - containerPort: 3306
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "root123"
+        - containerPort: 3000
+
 ---
+
+# Backend Green
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-green
+  labels:
+    app: backend
+    version: green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+      version: green
+  template:
+    metadata:
+      labels:
+        app: backend
+        version: green
+    spec:
+      containers:
+      - name: backend
+        image: studentappacr.azurecr.io/backend:latest
+        ports:
+        - containerPort: 3000
+
+---
+
+# Backend Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -31,6 +63,7 @@ spec:
   type: ClusterIP
   selector:
     app: backend
+    version: blue
   ports:
-    - port: 3306
-      targetPort: 3306
+    - port: 3000
+      targetPort: 3000

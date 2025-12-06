@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+    version: blue   # switching is done by changing this to green
+  ports:
+  - port: 80
+    targetPort: 80

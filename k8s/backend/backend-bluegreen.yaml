@@ -19,14 +19,14 @@ spec:
         version: blue
     spec:
       containers:
-        - name: backend
-          image: studentappacr.azurecr.io/backend:latest
-          ports:
-            - containerPort: 3306
+      - name: backend
+        image: studentappacr.azurecr.io/backend:latest
+        ports:
+        - containerPort: 3000
 
 ---
 
-# Backend Green Deployment (new version)
+# Backend Green Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -47,14 +47,14 @@ spec:
         version: green
     spec:
       containers:
-        - name: backend
-          image: studentappacr.azurecr.io/backend:latest
-          ports:
-            - containerPort: 3306
+      - name: backend
+        image: studentappacr.azurecr.io/backend:latest
+        ports:
+        - containerPort: 3000
 
 ---
 
-# ClusterIP Service points to active version
+# Backend Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -63,7 +63,7 @@ spec:
   type: ClusterIP
   selector:
     app: backend
-    version: blue  # start by pointing to blue
+    version: blue   # Start with blue version
   ports:
-    - port: 3306
-      targetPort: 3306
+    - port: 3000
+      targetPort: 3000

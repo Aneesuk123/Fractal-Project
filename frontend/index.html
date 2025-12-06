@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Fractal Project - Frontend</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Welcome to the Fractal Project Frontend</h1>
-    <p>This is a simple frontend served by Nginx.</p>
+    <div class="container">
+        <h1>Student Registration</h1>
+        <form id="studentForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
 
-    <h3>Backend API Test:</h3>
-    <button onclick="callBackend()">Check Backend Health</button>
+            <label for="roll">Roll Number:</label>
+            <input type="text" id="roll" name="roll" required>
 
-    <p id="response"></p>
+            <label for="class">Class:</label>
+            <input type="text" id="class" name="class" required>
 
-    <script>
-        function callBackend() {
-            fetch("http://backend-service:3000/health")
-                .then(res => res.text())
-                .then(data => document.getElementById("response").innerText = data)
-                .catch(err => document.getElementById("response").innerText = "Error contacting backend");
-        }
-    </script>
+            <button type="submit">Submit</button>
+        </form>
+
+        <p id="message"></p>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

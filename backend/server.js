@@ -1,17 +1,66 @@
-const express = require("express");
+const express = require('express');
+const mysql = require('mysql2');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
 const app = express();
 const PORT = 3000;
 
-// Sample API route
-app.get("/", (req, res) => {
-  res.json({ message: "Backend is running!" });
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// MySQL connection
+const db = mysql.createConnection({
+    host: 'mysql',      // Kubernetes service name for MySQL
+    user: 'root',       // MySQL username
+    password: 'rootpassword', // Set your MySQL root password
+    database: 'studentsdb'
 });
 
-// Health endpoint for Kubernetes
-app.get("/health", (req, res) => {
-  res.send("ok");
+// Connect to MySQL
+db.connect(err => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+        return;
+    }
+    console.log('Connected to MySQL!');
 });
 
+// Create students table if it doesn't exist
+db.query(
+    `CREATE TABLE IF NOT EXISTS students (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255),
+        roll VARCHAR(50),
+        class VARCHAR(50)
+    )`,
+    (err) => {
+        if (err) console.error('Error creating table:', err);
+    }
+);
+
+// Routes
+app.get('/students', (req, res) => {
+    db.query('SELECT * FROM students', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.post('/students', (req, res) => {
+    const { name, roll, class: className } = req.body;
+    db.query(
+        'INSERT INTO students (name, roll, class) VALUES (?, ?, ?)',
+        [name, roll, className],
+        (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'Student added successfully', id: result.insertId });
+        }
+    );
+});
+
+// Start server
 app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
+    console.log(`Backend running on port ${PORT}`);
 });

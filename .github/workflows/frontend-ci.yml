@@ -1,61 +1,47 @@
 name: Frontend CI
 
-
 on:
-push:
-branches:
-- dev-frontend
-- dev-backend
-- main
-paths:
-- "frontend/**"
-- "backend/**"
-- ".github/workflows/**"
-pull_request:
-paths:
-- "frontend/**"
-- "backend/**"
-
+  push:
+    branches:
+      - dev-frontend
+      - dev-backend
+      - main
+    paths:
+      - "frontend/**"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "frontend/**"
 
 jobs:
-build:
-runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-steps:
-- name: Checkout Code
-uses: actions/checkout@v3
+      - name: Login to ACR
+        run: az acr login --name studentappacr
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-- name: Login to Azure
-uses: azure/login@v1
-with:
-creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Build frontend image
+        run: docker build -t studentappacr.azurecr.io/frontend:${{ github.sha }} ./frontend
 
+      - name: Push frontend image
+        run: docker push studentappacr.azurecr.io/frontend:${{ github.sha }}
 
-- name: Login to ACR
-run: az acr login --name studentappacr
-
-
-- name: Set up Docker Buildx
-uses: docker/setup-buildx-action@v2
-
-
-- name: Build frontend image
-run: |
-docker build -t studentappacr.azurecr.io/frontend:${{ github.sha }} ./frontend
-
-
-- name: Push frontend image
-run: |
-docker push studentappacr.azurecr.io/frontend:${{ github.sha }}
-
-
-- name: Scan frontend image with Trivy
-uses: aquasecurity/trivy-action@0.28.0
-with:
-image-ref: studentappacr.azurecr.io/frontend:${{ github.sha }}
-format: 'table'
-exit-code: '1'
-vuln-type: 'os,library'
-severity: 'CRITICAL,HIGH,MEDIUM'
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: studentappacr.azurecr.io/frontend:${{ github.sha }}
+          format: 'table'
+          exit-code: '1'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH,MEDIUM'

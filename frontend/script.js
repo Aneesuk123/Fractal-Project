@@ -6,6 +6,7 @@ document.getElementById('studentForm').addEventListener('submit', async function
     const className = document.getElementById('class').value;
 
     try {
+        // Kubernetes service DNS name for backend
         const response = await fetch('http://backend-service:3000/students', {
             method: 'POST',
             headers: {

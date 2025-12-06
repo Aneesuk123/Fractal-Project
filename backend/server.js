@@ -12,9 +12,9 @@ app.use(bodyParser.json());
 
 // MySQL connection
 const db = mysql.createConnection({
-    host: 'mysql',      // Kubernetes service name for MySQL
-    user: 'root',       // MySQL username
-    password: 'rootpassword', // Set your MySQL root password
+    host: 'mysql',             // Kubernetes service name for MySQL
+    user: 'root',
+    password: 'rootpassword',   // matches mysql-deployment.yaml
     database: 'studentsdb'
 });
 
@@ -58,6 +58,11 @@ app.post('/students', (req, res) => {
             res.json({ message: 'Student added successfully', id: result.insertId });
         }
     );
+});
+
+// Health endpoint for Kubernetes probes
+app.get('/health', (req, res) => {
+    res.send('OK');
 });
 
 // Start server

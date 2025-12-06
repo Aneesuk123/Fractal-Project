@@ -2,6 +2,10 @@ name: Backend CI
 
 on:
   push:
+    branches:
+      - dev-frontend
+      - dev-backend
+      - main
     paths:
       - "backend/**"
   pull_request:
@@ -35,6 +39,6 @@ jobs:
           docker push studentappacr.azurecr.io/backend:${{ github.sha }}
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@v1
+        uses: aquasecurity/trivy-action@v0
         with:
           image-ref: studentappacr.azurecr.io/backend:${{ github.sha }}

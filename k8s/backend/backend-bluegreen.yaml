@@ -1,4 +1,3 @@
-# Backend Blue Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,7 +6,7 @@ metadata:
     app: backend
     version: blue
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -20,13 +19,19 @@ spec:
     spec:
       containers:
       - name: backend
-        image: studentappacr.azurecr.io/backend:latest
+        image: aneesuk/backend:blue
         ports:
         - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
 
 ---
-
-# Backend Green Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -35,7 +40,7 @@ metadata:
     app: backend
     version: green
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -48,22 +53,28 @@ spec:
     spec:
       containers:
       - name: backend
-        image: studentappacr.azurecr.io/backend:latest
+        image: aneesuk/backend:green
         ports:
         - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
 
 ---
-
-# Backend Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
+  name: backend
 spec:
-  type: ClusterIP
   selector:
     app: backend
-    version: blue   # Start with blue version
+    version: blue    # Start with BLUE
   ports:
-    - port: 3000
-      targetPort: 3000
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP

@@ -35,6 +35,7 @@ jobs:
           docker push studentappacr.azurecr.io/frontend:${{ github.sha }}
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@v1
+        uses: aquasecurity/trivy-action@v0.11.2
+
         with:
           image-ref: studentappacr.azurecr.io/frontend:${{ github.sha }}

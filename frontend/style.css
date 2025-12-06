@@ -1,15 +1,21 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+
+    /* Background image from local folder */
+    background-image: url('images/bg.jpg');
+    background-size: cover;       /* Cover entire viewport */
+    background-repeat: no-repeat; /* Prevent tiling */
+    background-position: center;  /* Center the image */
 }
 
+/* Container styling */
 .container {
     width: 400px;
     margin: 50px auto;
     padding: 30px;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.9); /* slightly transparent for readability */
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }

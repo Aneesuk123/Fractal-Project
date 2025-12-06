@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fractal Project - Frontend</title>
+</head>
+<body>
+    <h1>Welcome to the Fractal Project Frontend</h1>
+    <p>This is a simple frontend served by Nginx.</p>
+
+    <h3>Backend API Test:</h3>
+    <button onclick="callBackend()">Check Backend Health</button>
+
+    <p id="response"></p>
+
+    <script>
+        function callBackend() {
+            fetch("http://backend-service:3000/health")
+                .then(res => res.text())
+                .then(data => document.getElementById("response").innerText = data)
+                .catch(err => document.getElementById("response").innerText = "Error contacting backend");
+        }
+    </script>
+</body>
+</html>

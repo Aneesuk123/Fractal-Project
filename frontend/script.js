@@ -6,8 +6,10 @@ document.getElementById('studentForm').addEventListener('submit', async function
     const className = document.getElementById('class').value;
 
     try {
-        // Kubernetes service DNS name for backend
-        const response = await fetch('http://backend-service:3000/students', {
+        // Use the backend URL from environment variable
+        const backendUrl = window.BACKEND_URL || 'http://backend-service:3000';
+
+        const response = await fetch(`${backendUrl}/students`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -21,3 +23,29 @@ document.getElementById('studentForm').addEventListener('submit', async function
         document.getElementById('message').innerText = 'Error: ' + error.message;
     }
 });
+
+// Load existing students
+async function loadStudents() {
+    try {
+        const backendUrl = window.BACKEND_URL || 'http://backend-service:3000';
+
+        const response = await fetch(`${backendUrl}/students`);
+        const students = await response.json();
+        const tableBody = document.getElementById('studentsTableBody');
+        tableBody.innerHTML = '';
+        students.forEach((student, index) => {
+            const row = `<tr>
+                <td>${index + 1}</td>
+                <td>${student.name}</td>
+                <td>${student.roll}</td>
+                <td>${student.class}</td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    } catch (error) {
+        console.error('Error fetching students:', error);
+    }
+}
+
+// Call on page load
+window.onload = loadStudents;

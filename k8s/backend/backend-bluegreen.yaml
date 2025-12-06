@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: aneesuk/backend:blue
+        image: aneesuk123/backend:blue
         ports:
         - containerPort: 3000
         readinessProbe:
@@ -30,9 +30,7 @@ spec:
           httpGet:
             path: /health
             port: 3000
-
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,7 +52,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: aneesuk/backend:green
+        image: aneesuk123/backend:green
         ports:
         - containerPort: 3000
         readinessProbe:
@@ -65,13 +63,11 @@ spec:
           httpGet:
             path: /health
             port: 3000
-
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service   # Updated name to match frontend fetch
+  name: backend
 spec:
   selector:
     app: backend

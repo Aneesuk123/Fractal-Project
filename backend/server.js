@@ -10,21 +10,25 @@ const PORT = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// MySQL connection
-const db = mysql.createConnection({
-    host: 'mysql',             // Kubernetes service name for MySQL
+// MySQL connection pool
+const db = mysql.createPool({
+    host: 'mysql',
     user: 'root',
-    password: 'rootpassword',   // matches mysql-deployment.yaml
-    database: 'studentsdb'
+    password: 'rootpassword',
+    database: 'studentsdb',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-// Connect to MySQL
-db.connect(err => {
+// Test initial connection
+db.getConnection((err, connection) => {
     if (err) {
         console.error('Error connecting to MySQL:', err);
         return;
     }
     console.log('Connected to MySQL!');
+    connection.release();
 });
 
 // Create students table if it doesn't exist
@@ -60,7 +64,7 @@ app.post('/students', (req, res) => {
     );
 });
 
-// Health endpoint for Kubernetes probes
+// Health check for readiness/liveness probes
 app.get('/health', (req, res) => {
     res.send('OK');
 });

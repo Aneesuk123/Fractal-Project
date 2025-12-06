@@ -61,7 +61,7 @@ jobs:
         docker build -t aneesuk123/frontend:blue -t aneesuk123/frontend:latest ./frontend
 
     - name: Scan frontend image with Trivy
-      uses: aquasecurity/trivy-action@v0.28.0
+      uses: aquasecurity/trivy-action@v0.1.5
       with:
         image-ref: aneesuk123/frontend:blue
         format: table

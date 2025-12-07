@@ -19,6 +19,9 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v2
+
       - name: Set service env
         run: echo "SERVICE=${{ matrix.service }}" >> $GITHUB_ENV
 

@@ -36,7 +36,7 @@ jobs:
         with:
           image-ref: aneesuk123/${SERVICE}:blue
           format: table
-          exit-code: 1        # ❌ Fail workflow if HIGH/CRITICAL found
+          exit-code: 1        # Fail workflow if HIGH/CRITICAL found
           vuln-type: os,library
           severity: HIGH,CRITICAL
 
@@ -81,9 +81,39 @@ jobs:
           kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"${{ steps.next-color.outputs.BACKEND_NEXT }}\"}}}"
           kubectl patch service frontend-service -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"version\":\"${{ steps.next-color.outputs.FRONTEND_NEXT }}\"}}}"
 
-      - name: Verify deployment
+      - name: Wait for pods to be ready
         run: |
-          echo "Backend service version:"
-          kubectl get svc backend-service -o jsonpath='{.spec.selector.version}'
-          echo "Frontend service version:"
-          kubectl get svc frontend-service -o jsonpath='{.spec.selector.version}'
+          kubectl rollout status deployment/backend-${{ steps.next-color.outputs.BACKEND_NEXT }} --timeout=120s
+          kubectl rollout status deployment/frontend-${{ steps.next-color.outputs.FRONTEND_NEXT }} --timeout=120s
+
+      - name: Health check
+        run: |
+          BACKEND_URL="http://$(kubectl get svc backend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080/health"
+          FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):80/health"
+
+          for url in $BACKEND_URL $FRONTEND_URL; do
+            echo "Checking $url"
+            for i in {1..10}; do
+              status=$(curl -s -o /dev/null -w "%{http_code}" $url || echo 000)
+              if [[ "$status" == "200" ]]; then
+                echo "$url is healthy"
+                break
+              fi
+              echo "Retrying $i..."
+              sleep 5
+              if [[ "$i" == "10" ]]; then
+                echo "$url failed health check!"
+                exit 1
+              fi
+            done
+          done
+
+      - name: Rollback if failed
+        if: failure()
+        run: |
+          echo "Rolling back services to previous color"
+          BACKEND_PREV=$( [ "${{ steps.next-color.outputs.BACKEND_NEXT }}" = "blue" ] && echo green || echo blue )
+          FRONTEND_PREV=$( [ "${{ steps.next-color.outputs.FRONTEND_NEXT }}" = "blue" ] && echo green || echo blue )
+          kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"$BACKEND_PREV\"}}}"
+          kubectl patch service frontend-service -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"version\":\"$FRONTEND_PREV\"}}}"
+          exit 1

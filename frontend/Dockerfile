@@ -13,4 +13,4 @@ WORKDIR /app
 EXPOSE 80
 
 # Default command to start frontend
-CMD ["sh"]  # Replace with your actual start command, e.g., ["npm", "start"] or ["php", "-S", "0.0.0.0:80"]
+CMD ["php", "-S", "0.0.0.0:80", "-t", "/app"]  # Replace with your actual start command, e.g., ["npm", "start"] or ["php", "-S", "0.0.0.0:80"]

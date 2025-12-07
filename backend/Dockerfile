@@ -13,4 +13,4 @@ WORKDIR /app
 EXPOSE 8080
 
 # Default command to start backend
-CMD ["sh"]  # Replace with your actual start command, e.g., ["node", "server.js"]
+CMD ["node", "server.js"]  # Replace with your actual start command, e.g., ["node", "server.js"]

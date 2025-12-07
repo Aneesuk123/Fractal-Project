@@ -117,3 +117,4 @@ jobs:
           kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"$BACKEND_PREV\"}}}"
           kubectl patch service frontend-service -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"version\":\"$FRONTEND_PREV\"}}}"
           exit 1
+#d

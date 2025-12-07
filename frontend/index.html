@@ -7,6 +7,31 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- Dynamic Version Label -->
+    <div id="version-label"
+         style="position:fixed; top:10px; right:10px; padding:8px 14px;
+         font-size:16px; border-radius:8px; color:white; 
+         font-weight:bold; z-index:999;">
+        VERSION: <span id="version-text"></span>
+    </div>
+
+    <script>
+        // Placeholder replaced by Docker during image build
+        const version = "__VERSION__";
+
+        const label = document.getElementById("version-label");
+        const text = document.getElementById("version-text");
+
+        text.innerText = version.toUpperCase();
+
+        if (version.toLowerCase() === "green") {
+            label.style.background = "#32cd32";   // Green
+        } else {
+            label.style.background = "#1e90ff";   // Blue
+        }
+    </script>
+
     <div class="container">
         <h1>Student Registration</h1>
         <form id="studentForm">
@@ -30,6 +55,7 @@
             <tbody id="studentsTableBody"></tbody>
         </table>
     </div>
+    
     <script src="script.js"></script>
 </body>
 </html>

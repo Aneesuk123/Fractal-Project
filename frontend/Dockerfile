@@ -9,5 +9,8 @@ RUN apk update && apk upgrade && \
 COPY . /app
 WORKDIR /app
 
-# Default command
-CMD ["sh"]
+# Expose port if your app uses one
+EXPOSE 80
+
+# Default command to start frontend
+CMD ["sh"]  # Replace with your actual start command, e.g., ["npm", "start"] or ["php", "-S", "0.0.0.0:80"]

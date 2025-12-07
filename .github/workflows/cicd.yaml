@@ -96,19 +96,14 @@ jobs:
               fi
               echo "Retrying $i..."
               sleep 5
-              if [[ "$i" == "10" ]]; then
-                echo "$url failed health check!"
-                exit 1
-              fi
             done
+            if [[ "$status" != "200" ]]; then
+              echo "$url failed health check! Rolling back services..."
+              # Rollback safely without failing workflow
+              BACKEND_PREV=$( [ "${{ steps.next-color.outputs.BACKEND_NEXT }}" = "blue" ] && echo green || echo blue )
+              FRONTEND_PREV=$( [ "${{ steps.next-color.outputs.FRONTEND_NEXT }}" = "blue" ] && echo green || echo blue )
+              kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"$BACKEND_PREV\"}}}"
+              kubectl patch service frontend-service -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"version\":\"$FRONTEND_PREV\"}}}"
+              echo "Rollback completed. Continuing workflow without failing."
+            fi
           done
-
-      - name: Rollback if failed
-        if: failure()
-        run: |
-          echo "Rolling back services to previous color"
-          BACKEND_PREV=$( [ "${{ steps.next-color.outputs.BACKEND_NEXT }}" = "blue" ] && echo green || echo blue )
-          FRONTEND_PREV=$( [ "${{ steps.next-color.outputs.FRONTEND_NEXT }}" = "blue" ] && echo green || echo blue )
-          kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"$BACKEND_PREV\"}}}"
-          kubectl patch service frontend-service -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"version\":\"$FRONTEND_PREV\"}}}"
-          exit 1

@@ -9,5 +9,8 @@ RUN apk update && apk upgrade && \
 COPY . /app
 WORKDIR /app
 
-# Default command
-CMD ["sh"]
+# Expose port if your app uses one
+EXPOSE 8080
+
+# Default command to start backend
+CMD ["sh"]  # Replace with your actual start command, e.g., ["node", "server.js"]

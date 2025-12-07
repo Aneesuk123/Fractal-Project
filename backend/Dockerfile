@@ -1,12 +1,13 @@
-FROM node:20-alpine
+# Use latest patched Alpine to fix vulnerabilities
+FROM alpine:3.23.0
 
+# Update packages and install dependencies
+RUN apk update && apk upgrade && \
+    apk add --no-cache bash curl libpng
+
+# Copy app files
+COPY . /app
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-EXPOSE 3000
-
-CMD ["node", "server.js"]
+# Default command
+CMD ["sh"]

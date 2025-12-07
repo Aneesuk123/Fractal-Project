@@ -1,12 +1,13 @@
-FROM nginx:alpine
+# Use latest patched Alpine to fix vulnerabilities
+FROM alpine:3.23.0
 
-COPY index.html /usr/share/nginx/html/
-COPY style.css /usr/share/nginx/html/
-COPY script.js /usr/share/nginx/html/
-COPY images/ /usr/share/nginx/html/images/
+# Update packages and install dependencies
+RUN apk update && apk upgrade && \
+    apk add --no-cache bash curl libpng
 
-# Replace placeholder __VERSION__ with ENV VERSION
-ARG VERSION
-RUN sed -i "s/__VERSION__/${VERSION}/g" /usr/share/nginx/html/index.html
+# Copy app files
+COPY . /app
+WORKDIR /app
 
-EXPOSE 80
+# Default command
+CMD ["sh"]

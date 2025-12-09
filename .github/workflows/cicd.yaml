@@ -70,6 +70,10 @@ jobs:
           kubectl apply -f k8s/mysql-deployment.yaml
           kubectl apply -f k8s/backend/backend-bluegreen.yaml
           kubectl apply -f k8s/frontend/frontend-bluegreen.yaml
+      - name: Ensure backend & frontend services exist
+        run: |
+          kubectl apply -f k8s/backend/backend-service.yaml
+          kubectl apply -f k8s/frontend/frontend-service.yaml
 
       - name: Switch services to next color
         run: |

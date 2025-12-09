@@ -1,8 +1,0 @@
-{
-  "spec": {
-    "selector": {
-      "app": "frontend",
-      "version": "blue"
-    }
-  }
-}

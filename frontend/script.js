@@ -7,7 +7,7 @@ document.getElementById('studentForm').addEventListener('submit', async function
 
     try {
         // Use the backend URL from environment variable
-        const backendUrl = window.BACKEND_URL || 'http://backend-service:3000';
+        const backendUrl = window.BACKEND_URL || 'http://backend:3000';
 
         const response = await fetch(`${backendUrl}/students`, {
             method: 'POST',
@@ -27,7 +27,7 @@ document.getElementById('studentForm').addEventListener('submit', async function
 // Load existing students
 async function loadStudents() {
     try {
-        const backendUrl = window.BACKEND_URL || 'http://backend-service:3000';
+        const backendUrl = window.BACKEND_URL || 'http://backend:3000';
 
         const response = await fetch(`${backendUrl}/students`);
         const students = await response.json();

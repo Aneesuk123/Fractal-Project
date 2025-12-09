@@ -1,16 +1,13 @@
-# Use latest patched Alpine to fix vulnerabilities
-FROM alpine:3.23.0
+FROM node:20-alpine
 
-# Update packages and install dependencies
-RUN apk update && apk upgrade && \
-    apk add --no-cache bash curl libpng
-
-# Copy app files
-COPY . /app
 WORKDIR /app
 
-# Expose port if your app uses one
-EXPOSE 8080
+COPY package*.json ./
+RUN npm install
 
-# Default command to start backend
-CMD ["node", "server.js"]  # Replace with your actual start command, e.g., ["node", "server.js"]
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

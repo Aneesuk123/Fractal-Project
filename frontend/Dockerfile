@@ -1,5 +1,5 @@
 # Use latest patched Alpine to fix vulnerabilities
-FROM alpine:3.23.0
+FROM php:8.2-cli-alpine
 
 # Update packages and install dependencies
 RUN apk update && apk upgrade && \
@@ -8,6 +8,8 @@ RUN apk update && apk upgrade && \
 # Copy app files
 COPY . /app
 WORKDIR /app
+
+RUN sed -i 's/__VERSION__/green/g' index.html
 
 # Expose port if your app uses one
 EXPOSE 80

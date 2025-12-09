@@ -18,13 +18,16 @@ spec:
         version: blue
     spec:
       containers:
-      - name: frontend
-        image: aneesuk123/frontend:blue
-        ports:
-        - containerPort: 80
-        env:
-        - name: BACKEND_URL
-          value: "http://backend-service:3000"  # internal cluster URL
+        - name: frontend
+          image: aneesuk123/frontend:blue
+          imagePullPolicy: Always
+          command: ["php"]
+          args: ["-S", "0.0.0.0:80", "-t", "/app"]
+          ports:
+            - containerPort: 80
+          env:
+            - name: BACKEND_URL
+              value: "http://backend:3000"
 
 ---
 apiVersion: apps/v1
@@ -47,13 +50,16 @@ spec:
         version: green
     spec:
       containers:
-      - name: frontend
-        image: aneesuk123/frontend:green
-        ports:
-        - containerPort: 80
-        env:
-        - name: BACKEND_URL
-          value: "http://backend-service:3000"
+        - name: frontend
+          image: aneesuk123/frontend:green
+          imagePullPolicy: Always
+          command: ["php"]
+          args: ["-S", "0.0.0.0:80", "-t", "/app"]
+          ports:
+            - containerPort: 80
+          env:
+            - name: BACKEND_URL
+              value: "http://backend:3000"
 
 ---
 apiVersion: v1
@@ -65,7 +71,7 @@ spec:
     app: frontend
     version: blue   # start with BLUE
   ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
+    - port: 80
+      targetPort: 80
+      protocol: TCP
   type: LoadBalancer

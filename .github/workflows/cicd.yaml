@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         service: [backend, frontend]
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +22,11 @@ jobs:
       - name: Login to ACR
         run: az acr login --name ${{ secrets.ACR_NAME }}
 
+      - name: Setup Trivy
+        uses: aquasecurity/setup-trivy@v0.2.3
+        with:
+          version: v0.65.0
+
       - name: Set service env
         run: echo "SERVICE=${{ matrix.service }}" >> $GITHUB_ENV
 
@@ -29,10 +35,13 @@ jobs:
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue \
                        -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:latest ./${SERVICE}
 
-      - name: Run Trivy Image Scan
+      # ==============================
+      # NEW: TRIVY ACTION SCAN (FIXED)
+      # ==============================
+      - name: Run Trivy Image Scan (Action) - ${{ matrix.service }}
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:latest
+          image-ref: ${{ secrets.ACR_NAME }}.azurecr.io/${{ matrix.service }}:latest
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL'
@@ -40,6 +49,14 @@ jobs:
           vuln-type: 'os,library'
         env:
           TRIVY_PLATFORM: linux/amd64
+
+      # ==============================
+      # ORIGINAL CLI SCAN (UNCHANGED)
+      # ==============================
+      - name: Scan Docker image with Trivy CLI
+        run: |
+          trivy image --exit-code 0 --severity HIGH,CRITICAL \
+          ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue
 
       - name: Push Docker image to ACR
         run: |
@@ -95,25 +112,4 @@ jobs:
       - name: Health check
         run: |
           BACKEND_URL="https://$(kubectl get ingress fractal-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')/api/health"
-          FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')/health"
-
-          for url in $BACKEND_URL $FRONTEND_URL; do
-            echo "Checking $url"
-            for i in {1..10}; do
-              status=$(curl -k -s -o /dev/null -w "%{http_code}" $url || echo 000)
-              if [[ "$status" == "200" ]]; then
-                echo "$url is healthy"
-                break
-              fi
-              echo "Retrying $i... ($status)"
-              sleep 5
-            done
-            if [[ "$status" != "200" ]]; then
-              echo "$url failed health check! Rolling back services..."
-              BACKEND_PREV=$( [ "${{ steps.next-color.outputs.BACKEND_NEXT }}" = "blue" ] && echo green || echo blue )
-              FRONTEND_PREV=$( [ "${{ steps.next-color.outputs.FRONTEND_NEXT }}" = "blue" ] && echo green || echo blue )
-              kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"$BACKEND_PREV\"}}}"
-              kubectl patch service frontend-service -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"version\":\"$FRONTEND_PREV\"}}}"
-              echo "Rollback completed. Continuing workflow without failing."
-            fi
-          done
+          FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'_

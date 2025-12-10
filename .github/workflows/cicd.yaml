@@ -36,7 +36,7 @@ jobs:
 
       - name: Scan Docker image with Trivy
         run: |
-          trivy image --exit-code 0 --severity HIGH,CRITICAL ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue
+          trivy image --exit-code 1 --severity HIGH,CRITICAL ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue
 
       - name: Push Docker image to ACR
         run: |

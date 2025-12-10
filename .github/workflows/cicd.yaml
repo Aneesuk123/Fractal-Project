@@ -12,6 +12,9 @@ jobs:
         service: [backend, frontend]
     steps:
       - uses: actions/checkout@v4
+      - name: Generate npm lockfile
+        run: npm install --package-lock-only
+
       - name: Suppress known HIGH CVEs
         run: |
           echo "// Temporarily ignoring CVE-2023-45853 in Node.js dependencies"

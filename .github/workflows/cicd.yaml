@@ -13,11 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
+      - name: Login to Azure CLI
+        uses: azure/login@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ secrets.ACR_NAME }}
 
       - name: Setup Trivy
         uses: aquasecurity/setup-trivy@v0.2.3
@@ -29,16 +31,17 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t aneesuk123/${SERVICE}:blue -t aneesuk123/${SERVICE}:latest ./${SERVICE}
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue \
+                       -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:latest ./${SERVICE}
 
       - name: Scan Docker image with Trivy
         run: |
-          trivy image --exit-code 0 --severity HIGH,CRITICAL aneesuk123/${SERVICE}:blue
+          trivy image --exit-code 0 --severity HIGH,CRITICAL ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue
 
-      - name: Push Docker image
+      - name: Push Docker image to ACR
         run: |
-          docker push aneesuk123/${SERVICE}:blue
-          docker push aneesuk123/${SERVICE}:latest
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:latest
 
   deploy:
     needs: build-and-scan
@@ -70,6 +73,7 @@ jobs:
           kubectl apply -f k8s/mysql-deployment.yaml
           kubectl apply -f k8s/backend/backend-bluegreen.yaml
           kubectl apply -f k8s/frontend/frontend-bluegreen.yaml
+
       - name: Ensure backend & frontend services exist
         run: |
           kubectl apply -f k8s/backend/backend-service.yaml
@@ -87,23 +91,24 @@ jobs:
 
       - name: Health check
         run: |
-          BACKEND_URL="http://$(kubectl get svc backend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):8080/health"
-          FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'):80/health"
+          # Dynamic backend health endpoint via ingress
+          BACKEND_URL="https://$(kubectl get ingress fractal-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')/api/health"
+          # Dynamic frontend health endpoint via LoadBalancer
+          FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')/health"
 
           for url in $BACKEND_URL $FRONTEND_URL; do
             echo "Checking $url"
             for i in {1..10}; do
-              status=$(curl -s -o /dev/null -w "%{http_code}" $url || echo 000)
+              status=$(curl -k -s -o /dev/null -w "%{http_code}" $url || echo 000)
               if [[ "$status" == "200" ]]; then
                 echo "$url is healthy"
                 break
               fi
-              echo "Retrying $i..."
+              echo "Retrying $i... ($status)"
               sleep 5
             done
             if [[ "$status" != "200" ]]; then
               echo "$url failed health check! Rolling back services..."
-              # Rollback safely without failing workflow
               BACKEND_PREV=$( [ "${{ steps.next-color.outputs.BACKEND_NEXT }}" = "blue" ] && echo green || echo blue )
               FRONTEND_PREV=$( [ "${{ steps.next-color.outputs.FRONTEND_NEXT }}" = "blue" ] && echo green || echo blue )
               kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"$BACKEND_PREV\"}}}"

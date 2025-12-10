@@ -1,3 +1,6 @@
+#######################################
+# BACKEND BLUE DEPLOYMENT
+#######################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,18 +23,35 @@ spec:
       containers:
       - name: backend
         image: aneesuk123/backend:blue
+        command: ["node", "server.js"]   # IMPORTANT FIX
         ports:
-        - containerPort: 3000
+          - containerPort: 3000
+        env:
+          - name: DB_HOST
+            value: "mysql"
+          - name: DB_USER
+            value: "root"
+          - name: DB_PASSWORD
+            value: "rootpassword"
+          - name: DB_NAME
+            value: "studentsdb"
         readinessProbe:
           httpGet:
             path: /health
             port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 20
 
 ---
+#######################################
+# BACKEND GREEN DEPLOYMENT
+#######################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,28 +74,27 @@ spec:
       containers:
       - name: backend
         image: aneesuk123/backend:green
-        command: ["node", "server.js"]
+        command: ["node", "server.js"]   # SAME FIX FOR GREEN
         ports:
-        - containerPort: 3000
+          - containerPort: 3000
+        env:
+          - name: DB_HOST
+            value: "mysql"
+          - name: DB_USER
+            value: "root"
+          - name: DB_PASSWORD
+            value: "rootpassword"
+          - name: DB_NAME
+            value: "studentsdb"
         readinessProbe:
           httpGet:
             path: /health
             port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
             port: 3000
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend
-spec:
-  selector:
-    app: backend
-    version: blue    # Start with BLUE
-  ports:
-  - port: 3000
-    targetPort: 3000
-    protocol: TCP
+          initialDelaySeconds: 30
+          periodSeconds: 20

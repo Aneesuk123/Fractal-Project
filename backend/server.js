@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 
 // MySQL connection pool
 const db = mysql.createPool({
-    host: 'mysql',
+    host: 'mysql',  // MUST match your K8s MySQL service name
     user: 'root',
     password: 'rootpassword',
     database: 'studentsdb',
@@ -21,7 +21,7 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
-// Test initial connection
+// Test connection
 db.getConnection((err, connection) => {
     if (err) {
         console.error('Error connecting to MySQL:', err);
@@ -31,7 +31,7 @@ db.getConnection((err, connection) => {
     connection.release();
 });
 
-// Create students table if it doesn't exist
+// Create table if not exists
 db.query(
     `CREATE TABLE IF NOT EXISTS students (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,15 +44,15 @@ db.query(
     }
 );
 
-// Routes
-app.get('/students', (req, res) => {
+// API routes with /api prefix
+app.get('/api/students', (req, res) => {
     db.query('SELECT * FROM students', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });
 });
 
-app.post('/students', (req, res) => {
+app.post('/api/students', (req, res) => {
     const { name, roll, class: className } = req.body;
     db.query(
         'INSERT INTO students (name, roll, class) VALUES (?, ?, ?)',
@@ -64,7 +64,7 @@ app.post('/students', (req, res) => {
     );
 });
 
-// Health check for readiness/liveness probes
+// Health check for probes
 app.get('/health', (req, res) => {
     res.send('OK');
 });

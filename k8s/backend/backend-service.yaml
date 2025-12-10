@@ -2,13 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: backend-service
+  labels:
+    app: backend
 spec:
   selector:
     app: backend
-    version: blue   # Start with BLUE version
+    version: blue   # start with blue; CI will patch this to green when switching
   ports:
     - port: 3000
       targetPort: 3000
       protocol: TCP
   type: ClusterIP
-#aSS

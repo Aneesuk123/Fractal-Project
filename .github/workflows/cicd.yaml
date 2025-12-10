@@ -19,7 +19,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Login to ACR
-        run: az acr login --name studentappacr
+        run: az acr login --name ${{ secrets.ACR_NAME }}
 
       - name: Setup Trivy
         uses: aquasecurity/setup-trivy@v0.2.3
@@ -31,8 +31,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t studentappacr.azurecr.io/${SERVICE}:blue \
-                       -t studentappacr.azurecr.io/${SERVICE}:latest ./${SERVICE}
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue \
+                       -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:latest ./${SERVICE}
 
       - name: Scan Docker image with Trivy
         run: |

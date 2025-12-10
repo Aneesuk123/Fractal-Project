@@ -112,4 +112,13 @@ jobs:
       - name: Health check
         run: |
           BACKEND_URL="https://$(kubectl get ingress fractal-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')/api/health"
-          FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'_
+          FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+
+          echo "Backend URL: $BACKEND_URL"
+          echo "Frontend URL: $FRONTEND_URL"
+
+          echo "Checking backend health..."
+          curl -vk "$BACKEND_URL"
+
+          echo "Checking frontend health..."
+          curl -vk "$FRONTEND_URL"

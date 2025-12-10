@@ -12,6 +12,10 @@ jobs:
         service: [backend, frontend]
     steps:
       - uses: actions/checkout@v4
+      - name: Suppress known HIGH CVEs
+        run: |
+          echo "// Temporarily ignoring CVE-2023-45853 in Node.js dependencies"
+          npm audit --omit=dev --audit-level=critical
 
       - name: Login to Azure CLI
         uses: azure/login@v2

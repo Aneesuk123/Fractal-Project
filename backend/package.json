@@ -13,7 +13,7 @@
     "express": "^4.18.2",
     "mysql2": "^3.6.0"
   },
-  "resolutions": {
-  "glob": "11.1.0"
+  "overrides": {
+  "glob": "10.5.0"
   }
 }

@@ -2,7 +2,10 @@ name: Fractal CI/CD
 
 on:
   push:
-    branches: ["main"]
+    branches: 
+      - main
+      - dev-backend
+      - dev-frontend
 
 jobs:
   build-and-scan:

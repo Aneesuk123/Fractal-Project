@@ -42,11 +42,11 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.ACR_NAME }}.azurecr.io/${{ matrix.service }}:latest
-          format: 'table'
+          format: table
           exit-code: '1'
-          severity: 'CRITICAL'
+          severity: CRITICAL
           ignore-unfixed: true
-          vuln-type: 'os,library'
+          vuln-type: os,library
         env:
           TRIVY_PLATFORM: linux/amd64
 
@@ -66,6 +66,7 @@ jobs:
   deploy:
     needs: build-and-scan
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -85,6 +86,7 @@ jobs:
         run: |
           BACKEND_CUR=$(kubectl get svc backend-service -o jsonpath='{.spec.selector.version}' || echo green)
           FRONTEND_CUR=$(kubectl get svc frontend-service -o jsonpath='{.spec.selector.version}' || echo green)
+
           echo "BACKEND_NEXT=$( [ "$BACKEND_CUR" = "blue" ] && echo green || echo blue )" >> $GITHUB_OUTPUT
           echo "FRONTEND_NEXT=$( [ "$FRONTEND_CUR" = "blue" ] && echo green || echo blue )" >> $GITHUB_OUTPUT
 
@@ -110,15 +112,31 @@ jobs:
           kubectl rollout status deployment/frontend-${{ steps.next-color.outputs.FRONTEND_NEXT }} --timeout=120s
 
       - name: Health check
+        id: health
         run: |
-          BACKEND_URL="https://$(kubectl get ingress fractal-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')/api/health"
+          INGRESS_IP=$(kubectl get ingress fractal-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          BACKEND_URL="https://$INGRESS_IP/api/health"
           FRONTEND_URL="http://$(kubectl get svc frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
 
-          echo "Backend URL: $BACKEND_URL"
-          echo "Frontend URL: $FRONTEND_URL"
-
-          echo "Checking backend health..."
+          echo "Checking backend: $BACKEND_URL"
           curl -vk "$BACKEND_URL"
 
-          echo "Checking frontend health..."
+          echo "Checking frontend: $FRONTEND_URL"
           curl -vk "$FRONTEND_URL"
+
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          echo "Deployment failed — rolling back to previous version..."
+
+          # Rollback backend
+          PREV_BACKEND=$(kubectl get svc backend-service -o jsonpath='{.spec.selector.version}')
+          ROLLBACK_COLOR=$( [ "$PREV_BACKEND" = "blue" ] && echo green || echo blue )
+          kubectl patch service backend-service -p "{\"spec\":{\"selector\":{\"app\":\"backend\",\"version\":\"$ROLLBACK_COLOR\"}}}"
+
+          # Rollback frontend
+          PREV_FRONTEND=$(kubectl get svc frontend-service -o jsonpath='{.spec.selector.version}')
+          ROLLBACK_COLOR=$( [ "$PREV_FRONTEND" = "blue" ] && echo green || echo blue )
+          kubectl patch service frontend-service -p "{\"spec\":{\"selector\":{\"app\":\"frontend\",\"version\":\"$ROLLBACK_COLOR\"}}}"
+
+          echo "Rollback complete."

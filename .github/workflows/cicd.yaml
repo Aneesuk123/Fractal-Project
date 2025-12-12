@@ -38,9 +38,7 @@ jobs:
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:blue \
                        -t ${{ secrets.ACR_NAME }}.azurecr.io/${SERVICE}:latest ./${SERVICE}
 
-      # ==============================
       # NEW: TRIVY ACTION SCAN (FIXED)
-      # ==============================
       - name: Run Trivy Image Scan (Action) - ${{ matrix.service }}
         uses: aquasecurity/trivy-action@master
         with:

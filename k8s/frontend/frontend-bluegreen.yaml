@@ -25,7 +25,7 @@ spec:
         args: ["-S", "0.0.0.0:80", "-t", "/app"]
         ports:
         - containerPort: 80
-        # No BACKEND_URL needed for browser JS which uses relative /api
+        
 ---
 apiVersion: apps/v1
 kind: Deployment

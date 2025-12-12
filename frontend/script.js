@@ -23,7 +23,7 @@ document.getElementById('studentForm').addEventListener('submit', async function
         document.getElementById('message').innerText =
             result.message || JSON.stringify(result);
 
-        // Reload students after adding new one
+        
         loadStudents();
 
     } catch (error) {

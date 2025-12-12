@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 
 // MySQL connection pool
 const db = mysql.createPool({
-    host: 'mysql',  // MUST match your K8s MySQL service name
+    host: 'mysql',  
     user: 'root',
     password: 'rootpassword',
     database: 'studentsdb',
@@ -31,7 +31,7 @@ db.getConnection((err, connection) => {
     connection.release();
 });
 
-// Create table if not exists
+// Create table
 db.query(
     `CREATE TABLE IF NOT EXISTS students (
         id INT AUTO_INCREMENT PRIMARY KEY,

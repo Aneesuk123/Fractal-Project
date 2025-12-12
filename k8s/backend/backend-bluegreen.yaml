@@ -74,7 +74,7 @@ spec:
       containers:
       - name: backend
         image: aneesuk123/backend:green
-        command: ["node", "server.js"]   # SAME FIX FOR GREEN
+        command: ["node", "server.js"]   
         ports:
           - containerPort: 3000
         env:
